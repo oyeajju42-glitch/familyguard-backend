@@ -32,7 +32,7 @@ router.post("/enroll", async (req, res) => {
         deviceLabel: z.string().min(1),
         platformVersion: z.string().min(1),
         transparencyNoticeVersion: z.string().min(1),
-        consentAcceptedAt: z.string().datetime(),
+        consentAcceptedAt: z.string(),
         pairingCode: z.string().min(4),
       })
       .parse(req.body);
