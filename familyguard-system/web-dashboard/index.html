@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FamilyGuard Parent Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="bg-orb bg-orb-left"></div>
+    <div class="bg-orb bg-orb-right"></div>
+
+    <main class="app-shell" data-testid="parent-dashboard-shell">
+      <section class="auth-panel" id="authPanel" data-testid="auth-panel">
+        <div class="glass-card auth-card" data-testid="auth-card">
+          <h1 data-testid="app-main-heading">FamilyGuard Parent Access</h1>
+          <p class="muted" data-testid="auth-helper-text">
+            Consent-based child safety monitoring with transparent family controls.
+          </p>
+
+          <label data-testid="label-api-base">Backend API Base URL</label>
+          <input id="apiBaseInput" type="url" placeholder="http://localhost:8002" data-testid="input-api-base" />
+
+          <div class="tab-row" data-testid="auth-tab-row">
+            <button class="tab-btn is-active" id="registerTab" data-testid="register-tab-button">Register</button>
+            <button class="tab-btn" id="loginTab" data-testid="login-tab-button">Login</button>
+          </div>
+
+          <form id="authForm" data-testid="auth-form">
+            <div id="fullNameGroup" data-testid="parent-name-group">
+              <label data-testid="label-parent-name">Parent name</label>
+              <input id="fullName" type="text" placeholder="Sarah Williams" data-testid="input-parent-name" />
+            </div>
+
+            <label data-testid="label-parent-email">Email</label>
+            <input id="email" type="email" placeholder="parent@example.com" data-testid="input-parent-email" />
+
+            <label data-testid="label-parent-password">Password</label>
+            <input id="password" type="password" placeholder="••••••••" data-testid="input-parent-password" />
+
+            <button type="submit" class="primary-btn" id="authSubmit" data-testid="auth-submit-button">
+              Create account
+            </button>
+          </form>
+
+          <p class="mono" id="authMessage" data-testid="auth-message-text">Not signed in</p>
+        </div>
+      </section>
+
+      <section class="dashboard hidden" id="dashboardPanel" data-testid="dashboard-panel">
+        <aside class="glass-card sidebar" data-testid="dashboard-sidebar">
+          <h2 data-testid="sidebar-title">Connected Devices</h2>
+          <button id="refreshDevices" class="ghost-btn" data-testid="refresh-devices-button">Refresh</button>
+          <div id="deviceList" class="device-list" data-testid="device-list"></div>
+
+          <div class="consent-note" data-testid="consent-transparency-note">
+            <strong>Transparency Mode</strong>
+            <p>All monitoring requires child/device-owner consent. Actions are logged and visible.</p>
+          </div>
+        </aside>
+
+        <section class="content-grid" data-testid="dashboard-content-grid">
+          <header class="glass-card topbar" data-testid="dashboard-topbar">
+            <div>
+              <h1 data-testid="dashboard-heading">Family Safety Dashboard</h1>
+              <p id="selectedDeviceLabel" data-testid="selected-device-label">Select a device to begin</p>
+            </div>
+            <div class="status-pill" id="socketStatus" data-testid="socket-status-pill">Offline</div>
+          </header>
+
+          <article class="glass-card bento card-map" data-testid="location-card">
+            <h3 data-testid="location-card-title">Live Location</h3>
+            <p id="locationText" data-testid="location-latest-value">No location data yet.</p>
+            <img
+              src="https://images.unsplash.com/photo-1758598738092-a7cd486baadd?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTZ8MHwxfHNlYXJjaHwxfHxjaGlsZCUyMGxlYXJuaW5nJTIwdGFibGV0JTIwaGFwcHl8ZW58MHx8fHwxNzczMDM0MjM2fDA&ixlib=rb-4.1.0&q=85"
+              alt="Family safety"
+              data-testid="location-hero-image"
+            />
+          </article>
+
+          <article class="glass-card bento" data-testid="screen-time-card">
+            <h3 data-testid="screen-time-card-title">Screen Time</h3>
+            <p class="metric" id="screenTimeValue" data-testid="screen-time-total-value">0 minutes</p>
+            <canvas id="screenTimeChart" data-testid="screen-time-chart"></canvas>
+          </article>
+
+          <article class="glass-card bento" data-testid="app-usage-card">
+            <h3 data-testid="app-usage-card-title">Top Apps (Today)</h3>
+            <div id="topAppsList" class="list" data-testid="top-apps-list"></div>
+          </article>
+
+          <article class="glass-card bento" data-testid="installed-apps-card">
+            <h3 data-testid="installed-apps-card-title">Installed Apps Snapshot</h3>
+            <div id="installedAppsList" class="list" data-testid="installed-apps-list"></div>
+          </article>
+
+          <article class="glass-card bento" data-testid="activity-log-card">
+            <h3 data-testid="activity-log-card-title">Activity Logs</h3>
+            <div id="activityList" class="list" data-testid="activity-log-list"></div>
+          </article>
+
+          <article class="glass-card bento" data-testid="notification-log-card">
+            <h3 data-testid="notification-log-card-title">Notification Access Logs</h3>
+            <div id="notificationList" class="list" data-testid="notification-log-list"></div>
+          </article>
+
+          <article class="glass-card bento" data-testid="daily-report-card">
+            <h3 data-testid="daily-report-card-title">Daily Report</h3>
+            <input type="date" id="reportDate" data-testid="report-date-input" />
+            <button class="primary-btn" id="loadReport" data-testid="load-report-button">Load report</button>
+            <pre id="reportData" class="mono" data-testid="daily-report-data"></pre>
+          </article>
+
+          <article class="glass-card bento" data-testid="remote-lock-card">
+            <h3 data-testid="remote-lock-card-title">Remote Device Lock</h3>
+            <p class="muted" data-testid="remote-lock-description">Use only in safety emergencies.</p>
+            <button class="danger-btn" id="lockDevice" data-testid="lock-device-button">Send lock command</button>
+            <p id="lockStatus" class="mono" data-testid="lock-command-status">No command sent.</p>
+          </article>
+        </section>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
