@@ -27,7 +27,7 @@ router.post("/enroll", async (req, res) => {
   try {
     const payload = z
       .object({
-        parentId: z.string().min(8),
+        parentId: z.string(),
         childName: z.string().min(1),
         deviceLabel: z.string().min(1),
         platformVersion: z.string().min(1),
@@ -46,7 +46,7 @@ router.post("/enroll", async (req, res) => {
       .slice(2)}`;
 
     const created = await ChildDevice.create({
-      parentId: payload.parentId,
+parentId: payload.parentId || "default-parent",
       childName: payload.childName,
       deviceLabel: payload.deviceLabel,
       platformVersion: payload.platformVersion,
